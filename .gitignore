@@ -22,6 +22,10 @@
 go.work
 go.work.sum
 
+# go build
+tmp
+tmp/*
+
 # env file
 .env
 
