@@ -18,6 +18,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+# Production env files
+config/*
+!config/.env.development
+
 # Go workspace file
 go.work
 go.work.sum
