@@ -61,15 +61,20 @@ func (c *Config) Load() Config {
 
 func Load() (*Config, error) {
 	appEnv := os.Getenv("APP_ENV")
+	envLocation := os.Getenv("ENV_LOCATION")
+
 	if appEnv == "" {
 		appEnv = "development"
 	}
-	
+
+	var err error = nil;
 	if appEnv == "development" {
-		err := godotenv.Load("./config/.env." + appEnv)
-		if err != nil {
-			return nil, fmt.Errorf("error loading .env file: %v", err)
-		}
+		err = godotenv.Load("./config/.env." + appEnv)
+	} else {
+		err = godotenv.Load(envLocation + "/.env." + appEnv)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file: %v", err)
 	}
 
 	config := Config{}
