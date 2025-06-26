@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/listentogether/auth"
 	"github.com/listentogether/config"
+	"github.com/listentogether/database"
 )
 
 func main() {
@@ -23,6 +24,8 @@ func main() {
 
 		return c.JSON(fiber.Map{"status": fiber.StatusOK, "meesage": "Auth service is working"})
 	})
+
+	database.Connect(config)
 
 	fmt.Println("Starting ListenTogether server on port:", os.Getenv("PORT"))
 

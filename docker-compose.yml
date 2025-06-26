@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword  # Change this to a secure password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "7878:8080"
+
+volumes:
+  db_data:
