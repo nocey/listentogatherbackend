@@ -3,27 +3,28 @@ package database
 import (
 	"fmt"
 
-	"github.com/listentogether/config"
+	"github.com/listentogether/config/types"
+	"github.com/listentogether/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-var psql *gorm.DB
+var DBConn *gorm.DB
 
-
-func Connect (config *config.Config) (*gorm.DB,error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", config.Database.Host, config.Database.User, config.Database.Password ,config.Database.DbName, config.Database.Port, config.Database.SSLmode ,config.Database.TimeZone)
+func Connect(databaseConfig *types.Database) (*gorm.DB, error) {
 	var err error = nil
-	if (psql != nil) {
-		return psql, err
+	if DBConn != nil {
+		fmt.Println("DBConn")
+		return DBConn, err
 	}
-	
 
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", databaseConfig.Host, databaseConfig.User, databaseConfig.Password, databaseConfig.DbName, databaseConfig.Port, databaseConfig.SSLmode, databaseConfig.TimeZone)
 	db, dbErr := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if (dbErr != nil){
-		return psql, fmt.Errorf("Database connection error")
+	db.AutoMigrate(&models.User{})
+	if dbErr != nil {
+		return DBConn, fmt.Errorf("database connection error")
 	}
 
-	psql = db
-	return psql, err
+	DBConn = db
+	return DBConn, err
 }

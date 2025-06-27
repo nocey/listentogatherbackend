@@ -12,11 +12,13 @@ import (
 
 type Config struct {
 	// Server types.ServerConfig `env:"Server"`
-	Database types.Database 
+	Database types.Database
 	// Log string `env:"log"`
-	Port string `env:"PORT"`
+	Port        string `env:"PORT"`
 	ConfigError string `env:"CONFIG_ERROR"`
 }
+
+var config *Config
 
 func processConfig(t reflect.Value) error {
 	if t.Kind() != reflect.Ptr || t.Elem().Kind() != reflect.Struct {
@@ -28,9 +30,9 @@ func processConfig(t reflect.Value) error {
 
 	for i := 0; i < elem.NumField(); i++ {
 		field := elem.Field(i)
-		
+
 		if field.Kind() == reflect.Struct {
-			if err:=processConfig(field.Addr()); err != nil {
+			if err := processConfig(field.Addr()); err != nil {
 				return err
 			}
 			continue
@@ -50,11 +52,11 @@ func processConfig(t reflect.Value) error {
 		case reflect.String:
 			field.SetString(value)
 		case reflect.Int:
-			intValue, err := strconv.ParseInt(value,10, 64)
+			intValue, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
-				return fmt.Errorf( "Invalid value for " + tag + ": " + err.Error())
+				return fmt.Errorf("Invalid value for " + tag + ": " + err.Error())
 			}
-			
+
 			field.SetInt(int64(intValue))
 		default:
 			return fmt.Errorf("Unsupported field type for " + tag)
@@ -65,6 +67,9 @@ func processConfig(t reflect.Value) error {
 }
 
 func Load() (*Config, error) {
+	if config != nil {
+		return config, nil
+	}
 	appEnv := os.Getenv("APP_ENV")
 	envLocation := os.Getenv("ENV_LOCATION")
 
@@ -72,7 +77,7 @@ func Load() (*Config, error) {
 		appEnv = "development"
 	}
 
-	var err error = nil;
+	var err error = nil
 	if appEnv == "development" {
 		err = godotenv.Load("./config/.env." + appEnv)
 	} else {
@@ -82,7 +87,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("error loading .env file: %v", err)
 	}
 
-	config := &Config{}
+	config = &Config{}
 	if err := processConfig(reflect.ValueOf(config)); err != nil {
 		return nil, fmt.Errorf("config load error %s", err)
 	}
