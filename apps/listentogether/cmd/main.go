@@ -9,8 +9,7 @@ import (
 	"github.com/listentogether/auth"
 	"github.com/listentogether/config"
 	"github.com/listentogether/database"
-	"github.com/listentogether/database/models"
-	"github.com/listentogether/main/middlewares"
+	"github.com/listentogether/main/routes"
 )
 
 func main() {
@@ -27,13 +26,7 @@ func main() {
 
 		return c.JSON(fiber.Map{"status": fiber.StatusOK, "meesage": "Auth service is working"})
 	})
-	app.Use(middlewares.UseConfig)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		var user []models.User
-		database.DBConn.Model(&models.User{}).Select("*").Find(&user)
-		return c.Status(fiber.StatusOK).JSON(user)
-	})
+	routes.UserRoutes(app)
 
 	fmt.Println("Starting ListenTogether server on port:", os.Getenv("PORT"))
 
