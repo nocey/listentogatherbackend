@@ -15,6 +15,7 @@ type Config struct {
 	Database types.Database
 	// Log string `env:"log"`
 	Port        string `env:"PORT"`
+	JwtToken    []byte `env:"JWT_AUTH_TOKEN" type:"byte"`
 	ConfigError string `env:"CONFIG_ERROR"`
 }
 
@@ -51,15 +52,21 @@ func processConfig(t reflect.Value) error {
 		switch field.Kind() {
 		case reflect.String:
 			field.SetString(value)
-		case reflect.Int:
+		case reflect.Slice:
+			if tag := elemType.Field(i).Tag.Get("type"); tag == "byte" {
+				field.SetBytes([]byte(value))
+			} else {
+				field.SetString(value)
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			intValue, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
-				return fmt.Errorf("Invalid value for " + tag + ": " + err.Error())
+				return fmt.Errorf("invalid value for " + tag + ": " + err.Error())
 			}
+			field.SetInt(intValue)
 
-			field.SetInt(int64(intValue))
 		default:
-			return fmt.Errorf("Unsupported field type for " + tag)
+			return fmt.Errorf("Unsupported field type for " + tag + field.Kind().String())
 		}
 		fmt.Println("Setting", tag, "to", value)
 	}
