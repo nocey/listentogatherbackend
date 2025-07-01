@@ -12,8 +12,8 @@ import (
 
 type Config struct {
 	// Server types.ServerConfig `env:"Server"`
-	Database types.Database
-	// Log string `env:"log"`
+	Database    types.Database
+	LogLevel    string `env:"LOG_LEVEL"`
 	Port        string `env:"PORT"`
 	JwtToken    []byte `env:"JWT_AUTH_TOKEN" type:"byte"`
 	ConfigError string `env:"CONFIG_ERROR"`
