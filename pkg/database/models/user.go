@@ -1,7 +1,20 @@
 package models
 
 type User struct {
-	ID      uint   `gorm:"primaryKey" json:"id"`
-	Name    string `json:"name"`
-	Updated int64  `gorm:"autoUpdateTime:nano" json:"updated"`
+	Model
+	Name        string        `json:"name"`
+	Permissions []Permissions `gorm:"many2many:user_permissions;foreignKey:ID;joinForeignKey:PermissionID;References:ID;joinReferences:UserID"`
+}
+
+func (user *User) HasPermission(perm *Permissions) bool {
+	userHasPerm := false
+	if user != nil {
+		for _, userPerm := range user.Permissions {
+			if userPerm == *perm {
+				userHasPerm = true
+				break
+			}
+		}
+	}
+	return userHasPerm
 }
