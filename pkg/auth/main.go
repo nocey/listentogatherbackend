@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/listentogether/config"
 	"github.com/listentogether/database"
@@ -45,4 +46,21 @@ func Protected(token string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+func Auth(perm *models.Permissions) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		token := c.Get("Authorization")
+		user, err := Protected(token)
+		if err != nil {
+			fmt.Println(err)
+			return c.Status(fiber.StatusUnauthorized).Send([]byte("Authocentation is required"))
+		}
+		if perm != nil {
+			user.HasPermission(perm)
+		}
+		c.Locals(user, "user")
+
+		return c.Next()
+	}
 }

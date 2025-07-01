@@ -2,12 +2,12 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/listentogether/main/handlers/user"
-	"github.com/listentogether/main/middlewares"
+	"github.com/listentogether/main/handlers"
 )
 
 func UserRoutes(app *fiber.App) {
 	userGroup := app.Group("/users")
 
-	userGroup.Get("/", middlewares.Auth(), user.GetAll)
+	userHandler := &handlers.User{}
+	userGroup.Get("/", userHandler.GetAll)
 }
