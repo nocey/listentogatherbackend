@@ -18,3 +18,6 @@ require (
 	gorm.io/driver/postgres v1.6.0 // indirect
 	gorm.io/gorm v1.30.0 // indirect
 )
+
+replace github.com/listentogether/log => ../log
+replace github.com/listentogether/config => ../config

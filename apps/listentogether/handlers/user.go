@@ -11,9 +11,9 @@ type User struct {
 
 func (u *User) GetAll(c *fiber.Ctx) error {
 	var users []models.User
-	err := database.DBConn.Preload("Permissions").Find(&users).Error
+	err := database.DBConn.Debug().Preload("Permissions").Find(&users).Error
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(users)
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(users)

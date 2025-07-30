@@ -12,8 +12,9 @@ import (
 
 type Config struct {
 	// Server types.ServerConfig `env:"Server"`
-	Database    types.Database
-	LogLevel    string `env:"LOG_LEVEL"`
+	Database types.Database
+	LogLevel int `env:"LOG_LEVEL"`
+
 	Port        string `env:"PORT"`
 	JwtToken    []byte `env:"JWT_AUTH_TOKEN" type:"byte"`
 	ConfigError string `env:"CONFIG_ERROR"`
@@ -68,7 +69,6 @@ func processConfig(t reflect.Value) error {
 		default:
 			return fmt.Errorf("Unsupported field type for " + tag + field.Kind().String())
 		}
-		fmt.Println("Setting", tag, "to", value)
 	}
 	return nil
 }
@@ -102,7 +102,6 @@ func Load() (*Config, error) {
 	if config.ConfigError != "" {
 		return nil, fmt.Errorf("config load error: %s", config.ConfigError)
 	}
-	fmt.Println("Config loaded successfully")
 
 	return config, nil
 }

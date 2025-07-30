@@ -1,10 +1,12 @@
-package log
+package logger
 
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 type DebugLevel int
@@ -45,8 +47,17 @@ type Logger struct {
 
 var logger = &Logger{}
 
-func Initialize(newLogger *Logger) {
-	logger = newLogger
+func New(filePath string, debugLevel DebugLevel) {
+	logFile, fileErr := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if fileErr != nil {
+		fmt.Printf("Failed to open log file: %v\n", fileErr)
+		os.Exit(1)
+	}
+	logger = &Logger{
+		output: logFile,
+		level:  debugLevel,
+	}
+	log.SetOutput(logFile)
 }
 
 func (l *Logger) Log(debugLevel DebugLevel, args ...interface{}) {
@@ -54,9 +65,16 @@ func (l *Logger) Log(debugLevel DebugLevel, args ...interface{}) {
 		return
 	}
 
+	if l.output == nil {
+		os.Exit(1)
+	}
+
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	msg := fmt.Sprintf("%s [%s] ", timestamp, debugLevel.String())
+	msg += fmt.Sprint(args...) + "\n"
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	l.output.Write([]byte(fmt.Sprintf("[%s]", debugLevel.String())))
+	l.output.Write([]byte(msg))
 
 }
 
@@ -67,6 +85,10 @@ func Fatal(args ...interface{}) {
 
 func Error(args ...interface{}) {
 	logger.Log(ERROR, args...)
+}
+
+func Notice(args ...interface{}) {
+	logger.Log(NOTICE, args...)
 }
 
 func Warning(args ...interface{}) {

@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/listentogether/config"
 	"github.com/listentogether/database"
+	logger "github.com/listentogether/log"
 	"github.com/listentogether/main/routes"
 )
 
 func main() {
 	config, err := config.Load()
+	logger.New("output.log", logger.DEBUG)
 	if err != nil {
-		fmt.Printf("Failed to load configuration: %v\n", err)
+		logger.Debug(fmt.Sprintf("Failed to load configuration: %v\n", err))
 		os.Exit(1)
 	}
 	app := fiber.New()
@@ -22,7 +23,6 @@ func main() {
 
 	routes.UserRoutes(app)
 
-	fmt.Println("Starting ListenTogether server on port:", os.Getenv("PORT"))
-
-	log.Fatal(app.Listen(":" + config.Port))
+	logger.Debug("Starting ListenTogether server on port:", config.Port)
+	logger.Fatal(app.Listen(":" + config.Port))
 }

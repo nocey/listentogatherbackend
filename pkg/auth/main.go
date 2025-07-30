@@ -9,6 +9,7 @@ import (
 	"github.com/listentogether/config"
 	"github.com/listentogether/database"
 	"github.com/listentogether/database/models"
+	logger "github.com/listentogether/log"
 )
 
 type ClaimUser struct {
@@ -19,12 +20,12 @@ type ClaimUser struct {
 func Protected(token string) (*models.User, error) {
 	user := &models.User{}
 	if token == "" {
-		return nil, fmt.Errorf("Missing token")
+		return nil, fmt.Errorf("missing token")
 	}
 
 	parts := strings.Split(token, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return nil, fmt.Errorf("Invaild header format")
+		return nil, fmt.Errorf("invaild header format")
 	}
 	token = parts[1]
 
@@ -38,7 +39,7 @@ func Protected(token string) (*models.User, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("Jwt parsing error")
+		return nil, fmt.Errorf("jwt parsing error")
 	}
 
 	if claims, ok := jwtToken.Claims.(ClaimUser); ok {
@@ -53,8 +54,11 @@ func Auth(perm *models.Permissions) fiber.Handler {
 		token := c.Get("Authorization")
 		user, err := Protected(token)
 		if err != nil {
-			fmt.Println(err)
-			return c.Status(fiber.StatusUnauthorized).Send([]byte("Authocentation is required"))
+			logger.Debug(err)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Authocentation is required",
+				"error": err.Error(),
+			})
 		}
 		if perm != nil {
 			user.HasPermission(perm)
