@@ -1,16 +1,17 @@
 package models
 
-type User struct {
+type Users struct {
 	Model
 	Name        string        `json:"name"`
-	Permissions []Permissions `gorm:"many2many:user_permissions;foreignKey:ID;joinForeignKey:PermissionID;References:ID;joinReferences:UserID"`
+	Password    string        `json:"password"`
+	Permissions []Permissions `gorm:"many2many:user_permissions;foreignKey:ID;joinForeignKey:PermissionID;References:ID;joinReferences:UserID" json:"permissions"`
 }
 
-func (user *User) HasPermission(perm *Permissions) bool {
+func (user *Users) HasPermission(perm *Permissions) bool {
 	userHasPerm := false
 	if user != nil {
 		for _, userPerm := range user.Permissions {
-			if userPerm == *perm {
+			if userPerm.Name == perm.Name {
 				userHasPerm = true
 				break
 			}

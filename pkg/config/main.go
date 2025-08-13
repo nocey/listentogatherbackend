@@ -17,6 +17,7 @@ type Config struct {
 
 	Port        string `env:"PORT"`
 	JwtToken    []byte `env:"JWT_AUTH_TOKEN" type:"byte"`
+	Salt        []byte `env:"SALT" type:"byte"`
 	ConfigError string `env:"CONFIG_ERROR"`
 }
 

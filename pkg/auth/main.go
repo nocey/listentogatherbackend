@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,8 +19,8 @@ type ClaimUser struct {
 	UserName string `json:"username"`
 }
 
-func Protected(token string) (*models.User, error) {
-	user := &models.User{}
+func Protected(token string) (*models.Users, error) {
+	user := &models.Users{}
 	if token == "" {
 		return nil, fmt.Errorf("missing token")
 	}
@@ -49,7 +51,7 @@ func Protected(token string) (*models.User, error) {
 	return user, nil
 }
 
-func Auth(perm *models.Permissions) fiber.Handler {
+func Middleware(perm *models.Permissions) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token := c.Get("Authorization")
 		user, err := Protected(token)
@@ -57,7 +59,7 @@ func Auth(perm *models.Permissions) fiber.Handler {
 			logger.Debug(err)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": "Authocentation is required",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 		if perm != nil {
@@ -67,4 +69,35 @@ func Auth(perm *models.Permissions) fiber.Handler {
 
 		return c.Next()
 	}
+}
+
+func JWTtoken(user *models.Users) (string, error) {
+	cfg, err := config.Load()
+	if err != nil {
+		return "", fmt.Errorf("loading config error on auth pkg")
+	}
+
+	claims := ClaimUser{
+		MapClaims: jwt.MapClaims{
+			"exp": jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+		},
+		UserName: user.Name,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(cfg.JwtToken)
+}
+
+func GeneratePasswordHash(password *string) error {
+	if *password == "" {
+		return fmt.Errorf("password cannot be empty")
+	}
+	config, _ := config.Load()
+	*password = fmt.Sprintf("%s%s", *password, config.Salt)
+	hash := sha256.New()
+	hash.Write([]byte(*password))
+
+	*password = fmt.Sprintf("%x", hash.Sum(nil))
+
+	return nil
 }
