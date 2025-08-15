@@ -12,7 +12,8 @@ func UserRoutes(app *fiber.App) {
 	userHandler := &handlers.User{}
 	permissionHandler := &handlers.Permission{}
 	userGroup.Get("/", userHandler.GetAll)
-	userGroup.Get("/permissions", auth.Middleware(nil), permissionHandler.GetUserPermissions)
+	userGroup.Get("/information", auth.Middleware(""), userHandler.GetInformation)
+	userGroup.Get("/permissions", auth.Middleware(""), permissionHandler.GetUserPermissions)
 	userGroup.Post("/login", userHandler.Login)
 	userGroup.Post("/signup", userHandler.SignUp)
 }

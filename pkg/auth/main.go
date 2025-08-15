@@ -44,14 +44,16 @@ func Protected(token string) (*models.Users, error) {
 		return nil, fmt.Errorf("jwt parsing error")
 	}
 
-	if claims, ok := jwtToken.Claims.(ClaimUser); ok {
-		database.DBConn.Model(&user).Where("name = ?", claims.UserName).Find(&user)
-	}
+	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
+		database.DBConn.Model(&user).Preload("Permissions").Where("name = ?", claims["username"]).Find(&user)
 
+	} else {
+		return nil, fmt.Errorf("invalid token claims")
+	}
 	return user, nil
 }
 
-func Middleware(perm *models.Permissions) fiber.Handler {
+func Middleware(permissionName string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token := c.Get("Authorization")
 		user, err := Protected(token)
@@ -62,10 +64,25 @@ func Middleware(perm *models.Permissions) fiber.Handler {
 				"error":   err.Error(),
 			})
 		}
+		perm := &models.Permissions{}
+
+		if permissionName != "" {
+			err = database.DBConn.Model(perm).Where("name = ?", permissionName).First(&perm).Error
+			if err != nil {
+				logger.Debug(err)
+				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+					"message": "Permission not found",
+					"error":   err.Error(),
+				})
+			}
+		}
+
 		if perm != nil {
 			user.HasPermission(perm)
+		} else {
+			logger.Debug("No permission required for this route")
 		}
-		c.Locals(user, "user")
+		c.Locals("user", user)
 
 		return c.Next()
 	}

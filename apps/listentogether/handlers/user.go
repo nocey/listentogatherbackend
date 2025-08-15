@@ -62,8 +62,9 @@ func (u *User) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user": user,
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, auth.ClaimUser{
+		MapClaims: jwt.MapClaims{},
+		UserName:  user.Name,
 	})
 
 	config, _ := config.Load()
@@ -117,4 +118,26 @@ func (u *User) SignUp(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(user)
+}
+
+func (u *User) GetInformation(c *fiber.Ctx) error {
+	ctx := c.Locals("user")
+	if ctx == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "User not authenticated",
+		})
+	}
+	user := ctx.(*models.Users)
+	if user == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"id":          user.ID,
+		"name":        user.Name,
+		"createdAt":   user.CreatedAt,
+		"updatedAt":   user.UpdatedAt,
+		"permissions": user.Permissions,
+	})
 }

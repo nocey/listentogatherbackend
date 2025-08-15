@@ -2,3 +2,4 @@
 %project=listentogether
 
 init 2025-08-02T16:02:36Z System Administrator <root@nacis-MacBook-Air.local> # Creates all tables to db
+posts 2025-08-14T15:53:29Z System Administrator <root@nacis-MacBook-Air.local> # Adds posts to databases
