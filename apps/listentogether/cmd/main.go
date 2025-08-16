@@ -23,6 +23,7 @@ func main() {
 
 	routes.UserRoutes(app)
 	routes.PostRoutes(app)
+	routes.ConfigRoutes(app)
 
 	logger.Debug("Starting ListenTogether server on port:", config.Port)
 	logger.Fatal(app.Listen(":" + config.Port))
